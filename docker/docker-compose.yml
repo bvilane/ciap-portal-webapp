@@ -1,0 +1,35 @@
+services:
+  app:
+    build: ../app
+    ports:
+      - "5173:5173"   # Vite dev or change to your production port
+      - "3000:3000"   # Backend if separate
+    environment:
+      - CACHE_PROXY=http://squid:3128
+      - KIWIx_URL=http://kiwix:8083
+    depends_on:
+      - squid
+    # volumes: 
+    #   - ../app:/usr/src/app
+
+  squid:
+    image: squid:latest
+    container_name: ciap-squid
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+      - squid-cache:/var/spool/squid
+    ports:
+      - "3128:3128"
+
+  # Optional: Kiwix Serve (if you want to host ZIM files locally)
+  kiwix:
+    image: ghcr.io/kiwix/kiwix-serve:latest
+    container_name: ciap-kiwix
+    command: ["--port", "8083", "/data"]
+    volumes:
+      - ./kiwix:/data
+    ports:
+      - "8083:8083"
+
+volumes:
+  squid-cache:
